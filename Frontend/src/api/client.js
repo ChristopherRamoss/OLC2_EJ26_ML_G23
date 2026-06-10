@@ -2,7 +2,7 @@
 const BASE = "http://localhost:5000";
 
 // Cambia a false cuando el backend de tu compañero esté listo
-const MOCK_MODE = true;
+const MOCK_MODE = false;
 
 // ── Helpers ────────────────────────────────────────────────────
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
