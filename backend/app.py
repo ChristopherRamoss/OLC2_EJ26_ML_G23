@@ -77,16 +77,9 @@ def clean():
             "registros_originales": resultado["registros_originales"],
             "registros_finales": resultado["registros_finales"],
             "nulos_total": resultado["nulos_total"],
-            "outliers_total": resultado["negativos"],
+            "outliers_total": resultado["outliers_total"],
             "eliminados": resultado["eliminados"],
-            "columnas": [
-                {
-                    "nombre": "ingresos_mensuales",
-                    "nulos": resultado["nulos_total"],
-                    "outliers": resultado["negativos"],
-                    "accion": "Nulos reemplazados con mediana. Valores negativos corregidos a 0."
-                }
-            ]
+            "columnas": resultado["columnas"]
         })
 
     except Exception as e:

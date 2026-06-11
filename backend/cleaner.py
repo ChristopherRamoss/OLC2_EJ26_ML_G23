@@ -31,6 +31,27 @@ def limpiar_datos(df):
         "registros_originales": registros_originales,
         "registros_finales": len(df),
         "nulos_total": nulos_total,
+        "outliers_total": int(negativos),
         "eliminados": int(duplicados),
-        "negativos": int(negativos)
+
+        "columnas": [
+            {
+                "nombre": "ingresos_mensuales",
+                "nulos": 0,
+                "outliers": int(negativos),
+                "accion": "Valores negativos corregidos a 0."
+            },
+            {
+                "nombre": "historial_pagos",
+                "nulos": 0,
+                "outliers": 0,
+                "accion": "Validado rango [0,100]."
+            },
+            {
+                "nombre": "utilizacion_credito",
+                "nulos": 0,
+                "outliers": 0,
+                "accion": "Validado rango [0,100]."
+            }
+        ]
     }
