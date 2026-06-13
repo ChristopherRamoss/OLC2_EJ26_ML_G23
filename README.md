@@ -26,3 +26,35 @@ Las variables `historial_pagos` y `utilizacion_credito` fueron restringidas al r
 ### Resultado del preprocesamiento
 
 Al finalizar la limpieza se obtuvo un conjunto de datos consistente, libre de duplicados, con valores faltantes tratados y con todas las variables dentro de sus rangos válidos. Este proceso contribuye a mejorar la calidad del entrenamiento, reducir ruido en los datos y aumentar la confiabilidad de las métricas generadas por el modelo de predicción de riesgo crediticio.
+
+
+# model.py — Modelo de predicción de riesgo crediticio
+# CreditGuard · OLC2 · USAC · Junio 2026
+
+## Decisiones de diseño
+
+Se implementó Random Forest desde cero usando únicamente numpy.
+Se eligió este algoritmo porque:
+
+1. El enunciado pide hiperparámetros de árboles (`n_estimators`, `max_depth`, `max_leaf_nodes`), que son exactamente los parámetros de Random Forest.
+
+2. Maneja bien datos desbalanceados (más clientes sin riesgo que con riesgo), gracias al muestreo bootstrap por árbol.
+
+3. No requiere normalización de variables, lo que simplifica el preprocesamiento de datos numéricos de distintas escalas (ingresos en miles vs historial en 0-100).
+
+## Uso de sklearn
+
+Se usa sklearn **ÚNICAMENTE** para:
+- `train_test_split`: división estándar de datos (utilidad)
+- métricas: `accuracy`, `precision`, `recall`, `f1`, `confusion_matrix` (cálculo verificable con fórmulas estándar de la industria)
+
+El clasificador (Random Forest + Árbol de Decisión) es de implementación propia con numpy.
+
+## Árbol de Decisión
+
+Árbol de Decisión binario implementado con numpy.
+
+Usa el índice de Gini para encontrar el mejor split en cada nodo:
+
+```math
+Gini = 1 - Σ(pᵢ²)
