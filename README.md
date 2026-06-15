@@ -1,41 +1,52 @@
-# CreditGuard — Manual Técnico
+# CreditGuard
 
-## Descripción General
+Sistema de predicción de riesgo crediticio utilizando técnicas de Machine Learning supervisado.
 
-CreditGuard es un sistema de predicción de riesgo crediticio desarrollado como proyecto académico para el curso **Organización de Lenguajes y Compiladores 2 (OLC2)**. El objetivo del sistema es analizar información financiera histórica de clientes y determinar, mediante técnicas de aprendizaje supervisado, si un solicitante representa o no un riesgo crediticio.
+---
 
-El sistema fue diseñado bajo una arquitectura cliente-servidor, separando completamente la interfaz gráfica del procesamiento interno y entrenamiento del modelo.
+# Integrantes
+
+* Esmeralda Del Rosario Guillén Veliz - 201901002
+* Christopher Miguel Angel Ramos Ascencio - 202200057
+
+---
+
+# Descripción del Proyecto
+
+CreditGuard es una aplicación web que permite analizar historiales financieros de clientes y predecir si un solicitante representa o no un riesgo crediticio.
 
 El sistema permite:
 
 * Cargar datasets en formato CSV.
-* Realizar limpieza y validación automática de datos.
+* Limpiar automáticamente datos inconsistentes.
 * Entrenar un modelo de Machine Learning.
 * Visualizar métricas de desempeño.
-* Reentrenar el modelo utilizando hiperparámetros personalizados.
+* Ajustar hiperparámetros.
 * Realizar predicciones sobre nuevos solicitantes.
+
+La arquitectura del sistema fue diseñada bajo un modelo cliente-servidor, separando completamente la interfaz visual del procesamiento interno del modelo.
 
 ---
 
-## Tecnologías Utilizadas
+# Tecnologías Utilizadas
 
-### Frontend
+## Frontend
 
 * React
 * Vite
 * JavaScript
-* Fetch API
 * CSS
+* Fetch API
 
-### Backend
+## Backend
 
-* Python
+* Python 3
 * Flask
 * Flask-CORS
 * Pandas
 * NumPy
 
-### Machine Learning
+## Machine Learning
 
 * Árbol de decisión implementado manualmente
 * Random Forest implementado manualmente
@@ -45,81 +56,71 @@ El sistema permite:
 
 ---
 
-## Estructura del Proyecto
+# Arquitectura del Sistema
 
-```text
-CreditGuard/
-│
-├── Frontend/
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   └── vite.config.js
-│
-├── backend/
-│   ├── app.py
-│   ├── cleaner.py
-│   ├── model.py
-│   ├── requirements.txt
-│   └── __pycache__/
-│
-├── creditguard_dataset.csv
-├── prueba.csv
-└── README.md
-```
+El sistema fue dividido en dos componentes principales.
+
+## Frontend
+
+Responsable de:
+
+* Interfaz gráfica
+* Carga de archivos CSV
+* Visualización de métricas
+* Ajuste de hiperparámetros
+* Solicitudes HTTP hacia el backend
+
+## Backend
+
+Responsable de:
+
+* Procesamiento del dataset
+* Limpieza de datos
+* Entrenamiento del modelo
+* Reentrenamiento
+* Predicciones
+* Gestión de endpoints REST
 
 ---
 
-## Arquitectura del Sistema
+# API Implementada
 
-El sistema fue desarrollado utilizando una arquitectura modular dividida en frontend y backend.
+El backend expone los siguientes endpoints.
 
-### Frontend
-
-Responsabilidades:
-
-* Interfaz gráfica del usuario.
-* Carga de archivos CSV.
-* Visualización de resultados.
-* Configuración de hiperparámetros.
-* Solicitud de predicciones.
-* Comunicación mediante peticiones HTTP.
-
-### Backend
-
-Responsabilidades:
-
-* Procesamiento del archivo CSV.
-* Limpieza y validación de datos.
-* Entrenamiento del modelo.
-* Exposición de endpoints REST.
-* Predicción de nuevos registros.
+| Endpoint | Método | Función                        |
+| -------- | ------ | ------------------------------ |
+| /upload  | POST   | Cargar archivo CSV             |
+| /clean   | POST   | Limpiar dataset                |
+| /train   | POST   | Entrenar modelo                |
+| /metrics | GET    | Obtener métricas               |
+| /retrain | POST   | Reentrenar con hiperparámetros |
+| /predict | POST   | Realizar predicción            |
 
 ---
 
 # Proceso de Limpieza de Datos
 
-La limpieza de datos constituye una fase crítica dentro del sistema, ya que garantiza que el modelo reciba información consistente y libre de errores que puedan afectar el entrenamiento.
+La limpieza de datos fue implementada en el archivo `cleaner.py`.
 
-El proceso fue implementado en el archivo `cleaner.py`.
+Esta etapa garantiza que el modelo reciba información consistente y reduce errores durante el entrenamiento.
 
 ---
 
-## 1. Copia del Dataset
+## 1. Copia del DataFrame
 
-Se genera una copia independiente del DataFrame original.
+Se crea una copia independiente del dataset.
 
 ```python
 df = df.copy()
 ```
 
-### Decisión de diseño
+### Justificación
 
-Se decidió trabajar sobre una copia para evitar modificar permanentemente el dataset original cargado por el usuario y conservar una versión intacta durante toda la sesión.
+Se evita modificar directamente el archivo original cargado por el usuario y se mantiene una versión intacta durante toda la sesión.
 
 ---
 
-## 2. Eliminación de Registros Duplicados
+## 2. Eliminación de Datos Duplicados
 
 Se detectan registros completamente repetidos.
 
@@ -128,17 +129,17 @@ duplicados = df.duplicated().sum()
 df = df.drop_duplicates()
 ```
 
-### Decisión de diseño
+### Justificación
 
-Los registros duplicados pueden introducir sesgo estadístico durante el entrenamiento del modelo, haciendo que ciertos patrones tengan una representación artificialmente mayor.
+Los datos duplicados generan sesgo estadístico dentro del entrenamiento, ya que ciertos patrones quedan sobrerrepresentados.
 
-Por esta razón se decidió eliminar duplicados.
+Por esta razón se decidió eliminarlos.
 
 ---
 
-## 3. Detección e Imputación de Valores Nulos
+## 3. Detección de Valores Nulos
 
-Se detectan valores faltantes dentro del dataset.
+Se cuentan valores faltantes dentro del dataset.
 
 ```python
 nulos_total = int(df.isnull().sum().sum())
@@ -150,19 +151,19 @@ Posteriormente se reemplazan utilizando la mediana.
 df[col] = df[col].fillna(df[col].median())
 ```
 
-### Decisión de diseño
+### Justificación
 
-Se eligió utilizar la mediana en lugar de eliminar registros debido a las siguientes razones:
+Se eligió imputar usando mediana porque:
 
-* Se conserva el tamaño original del dataset.
-* La mediana es menos sensible a valores extremos.
-* Se evita eliminar información útil de otras variables.
+* Conserva el tamaño del dataset.
+* Evita eliminar registros útiles.
+* La mediana es robusta frente a valores extremos.
 
 ---
 
 ## 4. Corrección de Ingresos Negativos
 
-Se detectan ingresos mensuales menores a cero.
+Se detectan valores negativos en ingresos mensuales.
 
 ```python
 negativos = (df["ingresos_mensuales"] < 0).sum()
@@ -174,17 +175,17 @@ Posteriormente se corrigen.
 df["ingresos_mensuales"] = df["ingresos_mensuales"].clip(lower=0)
 ```
 
-### Decisión de diseño
+### Justificación
 
-Dentro del contexto financiero un ingreso negativo representa un valor inválido.
+En el contexto financiero un ingreso negativo representa un valor inválido.
 
-Se decidió corregir a cero en lugar de eliminar registros para evitar pérdida innecesaria de información.
+Se decidió corregir a cero en lugar de eliminar registros para no perder información adicional contenida en otras variables.
 
 ---
 
 ## 5. Validación de Rangos Permitidos
 
-Dos variables representan porcentajes y deben mantenerse dentro del intervalo válido.
+Dos variables representan porcentajes y deben permanecer dentro del rango válido.
 
 ### Historial de pagos
 
@@ -198,17 +199,17 @@ df["historial_pagos"] = df["historial_pagos"].clip(0,100)
 df["utilizacion_credito"] = df["utilizacion_credito"].clip(0,100)
 ```
 
-### Decisión de diseño
+### Justificación
 
-Se decidió ajustar valores fuera del rango en lugar de eliminar registros para conservar información útil y evitar reducir el volumen de entrenamiento.
+Se decidió ajustar automáticamente valores fuera de rango en lugar de eliminar registros para conservar la mayor cantidad de información posible.
 
 ---
 
-# Selección del Modelo de Machine Learning
+# Selección del Modelo
 
-El modelo seleccionado fue **Random Forest**, implementado manualmente.
+Se seleccionó el algoritmo **Random Forest** para resolver el problema de clasificación binaria.
 
-La elección se realizó debido a que el problema consiste en clasificación binaria.
+Clasificación objetivo:
 
 ```text
 0 = Cliente sin riesgo
@@ -217,46 +218,42 @@ La elección se realizó debido a que el problema consiste en clasificación bin
 
 ---
 
-## Razones para elegir Random Forest
+## Razones de Selección
 
-Se seleccionó este algoritmo debido a las siguientes ventajas:
+Random Forest fue elegido por las siguientes ventajas:
 
 * Buen desempeño en clasificación binaria.
-* Reduce overfitting comparado con árboles individuales.
-* Maneja adecuadamente múltiples variables numéricas.
-* Captura relaciones no lineales entre variables.
-* Genera mayor estabilidad mediante votación entre múltiples árboles.
+* Reduce overfitting respecto a un árbol individual.
+* Maneja múltiples variables numéricas.
+* Captura relaciones no lineales.
+* Produce modelos más estables mediante votación entre árboles.
 
 ---
 
 # Implementación del Modelo
 
-El archivo `model.py` contiene la implementación completa del algoritmo.
+El modelo fue desarrollado manualmente en `model.py`.
 
-Se desarrollaron dos estructuras principales.
+No se utilizó implementación automática de Random Forest.
 
 ---
 
 ## Árbol de Decisión
 
-Clase implementada:
+Se implementó una estructura tipo nodo.
 
 ```python
+class Nodo
 class ArbolDecision
 ```
 
 Cada nodo contiene:
 
-```python
-feature_idx
-umbral
-izquierda
-derecha
-prediccion
-probabilidad
-```
-
-Cada árbol busca dividir el dataset utilizando el criterio de menor impureza.
+* Variable utilizada para dividir.
+* Umbral de división.
+* Nodo izquierdo.
+* Nodo derecho.
+* Predicción final.
 
 ---
 
@@ -264,7 +261,7 @@ Cada árbol busca dividir el dataset utilizando el criterio de menor impureza.
 
 Se utilizó como criterio de división.
 
-Fórmula utilizada:
+Fórmula:
 
 ```text
 Gini = 1 - (p² + (1-p)²)
@@ -272,15 +269,15 @@ Gini = 1 - (p² + (1-p)²)
 
 Donde:
 
-* p = proporción de registros positivos.
+* p = proporción de casos positivos.
 
-Se selecciona el split que produzca la menor impureza.
+El algoritmo busca minimizar impureza.
 
 ---
 
 ## Random Forest
 
-Clase implementada:
+Se implementó una clase independiente.
 
 ```python
 class RandomForest
@@ -289,9 +286,9 @@ class RandomForest
 Proceso interno:
 
 1. Generar muestras bootstrap.
-2. Entrenar múltiples árboles independientes.
+2. Entrenar múltiples árboles.
 3. Seleccionar subconjuntos aleatorios de variables.
-4. Obtener predicción individual por árbol.
+4. Obtener predicción individual.
 5. Aplicar votación por mayoría.
 
 ---
@@ -304,33 +301,53 @@ Cada árbol recibe una muestra aleatoria con reemplazo.
 idx = np.random.choice(n, size=n, replace=True)
 ```
 
-### Decisión de diseño
+### Justificación
 
-Se utiliza bootstrap sampling para generar diversidad entre árboles y reducir correlación entre modelos individuales.
+Permite introducir variabilidad entre árboles individuales y reduce correlación interna.
 
 ---
 
-## Selección Aleatoria de Variables
+# Entrenamiento del Modelo
 
-Cada árbol trabaja únicamente con un subconjunto aleatorio de variables.
+El entrenamiento sigue el siguiente proceso.
 
-```python
-sqrt(total_features)
+## Separación de Variables
+
+Se separan variables independientes y variable objetivo.
+
+```text
+9 variables predictoras
+1 variable objetivo (en_riesgo)
 ```
 
-### Decisión de diseño
+---
 
-Evitar dependencia excesiva de una sola variable e incrementar diversidad del bosque.
+## División del Dataset
+
+Se utiliza división:
+
+```text
+80% entrenamiento
+20% prueba
+```
+
+Implementado mediante:
+
+```python
+train_test_split()
+```
 
 ---
 
-# Métricas de Evaluación
+# Métricas Utilizadas
 
-El modelo se evalúa mediante cuatro métricas principales.
+El sistema evalúa el modelo usando cuatro métricas.
+
+---
 
 ## Accuracy
 
-Porcentaje global de predicciones correctas.
+Porcentaje total de predicciones correctas.
 
 ```text
 (TP + TN) / Total
@@ -363,86 +380,7 @@ TP / (TP + FN)
 Balance entre precision y recall.
 
 ```text
-2 * (Precision * Recall) / (Precision + Recall)
-```
-
----
-
-# API REST Implementada
-
-El backend expone los siguientes endpoints.
-
----
-
-## POST /upload
-
-Función:
-
-* Recibir archivo CSV.
-* Leer dataset utilizando Pandas.
-* Mostrar distribución inicial.
-* Mostrar primeras filas.
-
----
-
-## POST /clean
-
-Función:
-
-* Eliminar duplicados.
-* Detectar valores nulos.
-* Imputar datos faltantes.
-* Corregir valores inválidos.
-* Generar reporte de limpieza.
-
----
-
-## POST /train
-
-Función:
-
-* Separar variables independientes.
-* Entrenar modelo Random Forest.
-* Calcular métricas de desempeño.
-
----
-
-## GET /metrics
-
-Función:
-
-* Devolver métricas del último entrenamiento realizado.
-
----
-
-## POST /retrain
-
-Función:
-
-* Reentrenar el modelo utilizando hiperparámetros personalizados.
-
-Parámetros:
-
-```text
-n_estimators
-max_depth
-max_leaf_nodes
-```
-
----
-
-## POST /predict
-
-Función:
-
-* Recibir datos de un nuevo solicitante.
-* Ejecutar predicción utilizando modelo entrenado.
-
-Resultado:
-
-```text
-0 = Sin riesgo
-1 = En riesgo
+2 × (Precision × Recall) / (Precision + Recall)
 ```
 
 ---
@@ -453,45 +391,33 @@ Durante el desarrollo se tomaron las siguientes decisiones técnicas.
 
 ### Arquitectura cliente-servidor
 
-Permite independencia total entre frontend y backend.
-
----
+Se separó frontend y backend para facilitar mantenimiento.
 
 ### Diseño modular
 
 Separación entre:
 
-* API
-* Limpieza
-* Modelo
-
-Facilita mantenimiento y escalabilidad.
-
----
+* API (`app.py`)
+* Limpieza (`cleaner.py`)
+* Modelo (`model.py`)
 
 ### Estado temporal en memoria
 
-Se decidió no utilizar base de datos debido a que el sistema procesa información temporal cargada directamente por el usuario.
-
----
+No se implementó base de datos debido a que el sistema trabaja únicamente con archivos cargados temporalmente.
 
 ### Modelo implementado manualmente
 
-Se desarrolló el algoritmo desde cero para cumplir con los requerimientos académicos del proyecto.
+Se desarrolló desde cero para cumplir el requerimiento académico del proyecto.
+
+### Conservación de datos
+
+Se priorizó corregir datos inválidos antes que eliminar registros para mantener suficiente volumen de entrenamiento.
 
 ---
 
-### Corrección de datos en lugar de eliminación excesiva
+# Ejecución del Proyecto
 
-Se priorizó conservar la mayor cantidad posible de datos para entrenamiento.
-
-Los modelos supervisados requieren suficiente volumen de información para generalizar correctamente.
-
----
-
-# Ejecución del Sistema
-
-### Backend
+## Backend
 
 ```bash
 cd backend
@@ -499,7 +425,15 @@ pip install -r requirements.txt
 python app.py
 ```
 
-### Frontend
+Servidor:
+
+```text
+http://localhost:5000
+```
+
+---
+
+## Frontend
 
 ```bash
 cd Frontend
@@ -507,13 +441,7 @@ npm install
 npm run dev
 ```
 
-Backend:
-
-```text
-http://localhost:5000
-```
-
-Frontend:
+Servidor:
 
 ```text
 http://localhost:5173
@@ -523,42 +451,8 @@ http://localhost:5173
 
 # Conclusiones Técnicas
 
-Se desarrolló un sistema completo de clasificación supervisada capaz de procesar información financiera, limpiar datos inconsistentes, entrenar un modelo Random Forest implementado manualmente y generar predicciones sobre nuevos solicitantes.
+Se desarrolló un sistema completo de clasificación supervisada capaz de analizar información financiera, limpiar datos inconsistentes, entrenar un modelo Random Forest implementado manualmente y generar predicciones sobre nuevos solicitantes.
 
-La arquitectura modular permitió separar responsabilidades y facilitar mantenimiento del sistema.
+La arquitectura modular permitió separar responsabilidades entre procesamiento, limpieza, entrenamiento y visualización.
 
-La etapa de limpieza fue diseñada para priorizar conservación de información sin comprometer calidad del entrenamiento.
-
-La implementación manual del algoritmo permitió comprender internamente el funcionamiento de árboles de decisión, bootstrap sampling, selección aleatoria de atributos y votación por mayoría.
-
-
-# model.py — Modelo de predicción de riesgo crediticio
-# CreditGuard · OLC2 · USAC · Junio 2026
-
-## Decisiones de diseño
-
-Se implementó Random Forest desde cero usando únicamente numpy.
-Se eligió este algoritmo porque:
-
-1. El enunciado pide hiperparámetros de árboles (`n_estimators`, `max_depth`, `max_leaf_nodes`), que son exactamente los parámetros de Random Forest.
-
-2. Maneja bien datos desbalanceados (más clientes sin riesgo que con riesgo), gracias al muestreo bootstrap por árbol.
-
-3. No requiere normalización de variables, lo que simplifica el preprocesamiento de datos numéricos de distintas escalas (ingresos en miles vs historial en 0-100).
-
-## Uso de sklearn
-
-Se usa sklearn **ÚNICAMENTE** para:
-- `train_test_split`: división estándar de datos (utilidad)
-- métricas: `accuracy`, `precision`, `recall`, `f1`, `confusion_matrix` (cálculo verificable con fórmulas estándar de la industria)
-
-El clasificador (Random Forest + Árbol de Decisión) es de implementación propia con numpy.
-
-## Árbol de Decisión
-
-Árbol de Decisión binario implementado con numpy.
-
-Usa el índice de Gini para encontrar el mejor split en cada nodo:
-
-```math
-Gini = 1 - Σ(pᵢ²)
+La implementación manual del modelo permitió comprender internamente el funcionamiento de árboles de decisión, bootstrap sampling, selección aleatoria de variables y votación por mayoría.
