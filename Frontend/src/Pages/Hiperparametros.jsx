@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { retrain, getMetrics } from "../api/client";
 import AlertMessage from "../components/AlertMessage";
 
 const PARAMS = [
-  { key: "n_estimators",   label: "Árboles de decisión",  min: 50, max: 500, step: 1, default: 100,
+  { key: "n_estimators",   label: "Árboles de decisión",  min: 10, max: 500, step: 10, default: 100,
     hint: "Más árboles = mayor precisión pero más lento. Empieza con 100." },
-  { key: "max_depth",      label: "Profundidad máxima",    min: 5,  max: 30,  step: 1,  default: 10,
+  { key: "max_depth",      label: "Profundidad máxima",    min: 1,  max: 30,  step: 1,  default: 5,
     hint: "Controla qué tan complejo puede ser cada árbol. Valores altos = overfitting." },
-  { key: "max_leaf_nodes", label: "Máx. hojas por árbol", min: 10,  max: 200, step: 1,  default: 50,
+  { key: "max_leaf_nodes", label: "Máx. hojas por árbol", min: 2,  max: 100, step: 2,  default: 20,
     hint: "Limita el tamaño de cada árbol. Ayuda a generalizar mejor." },
 ];
 
@@ -18,48 +18,37 @@ const METRICAS = [
   { key: "f1",        label: "F1 Score"   },
 ];
 
-// ── Flecha de cambio ──────────────────────────────────────────
-const Delta = ({ antes, despues }) => {
-  if (antes === null || despues === null) return null;
-  const diff = ((despues - antes) * 100).toFixed(1);
-  const up = despues >= antes;
-  return (
-    <span style={{ fontSize: "11px", fontWeight: 700, color: up ? "#1D9E75" : "#e74c3c", marginLeft: "6px" }}>
-      {up ? "▲" : "▼"} {Math.abs(diff)}%
-    </span>
-  );
-};
-
-export default function Hiperparametros({ trained }) {
-  const [vals,       setVals]       = useState({ n_estimators: 100, max_depth: 5, max_leaf_nodes: 20 });
-  const [prevMetrics, setPrevMetrics] = useState(null); // métricas ANTES de reentrenar
-  const [newMetrics,  setNewMetrics]  = useState(null); // métricas DESPUÉS de reentrenar
-  const [alert,      setAlert]      = useState(null);
-  const [loading,    setLoading]    = useState(false);
-
-  // Al montar, cargamos las métricas actuales del modelo ya entrenado
-  // para tenerlas como "Antes" en la primera comparación
-  useEffect(() => {
-    if (trained) {
-      getMetrics()
-        .then((m) => setPrevMetrics(m))
-        .catch(() => {});
-    }
-  }, [trained]);
+// Componente principal -----------------------------------------------------------
+export default function Hiperparametros({
+  trained,
+  vals, setVals,
+  prevMetrics, setPrevMetrics,
+  newMetrics, setNewMetrics,
+  onRetrainSuccess,
+}) {
+  const [alert,   setAlert]   = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleRetrain = async () => {
     setLoading(true);
     try {
       // 1. Guardamos las métricas actuales como "Antes"
-      const before = await getMetrics();
-      setPrevMetrics(before);
+      let before = prevMetrics;
+      try {
+        before = await getMetrics();
+        setPrevMetrics(before);
+      } catch {
+        // Si aún no hay métricas previas, "Antes" queda vacío
+      }
 
       // 2. Reentrenamos
-      await retrain(vals);
+      const after = await retrain(vals);
 
-      // 3. Obtenemos las nuevas métricas como "Después"
-      const after = await getMetrics();
+      // 3. Guardamos las nuevas métricas como "Después"
       setNewMetrics(after);
+
+      // 4. Notificar a App.jsx: actualiza métricas globales + historial
+      onRetrainSuccess(after);
 
       setAlert({ type: "success", msg: "Reentrenamiento completado. Revisa la comparativa abajo." });
     } catch (err) {

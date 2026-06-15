@@ -14,16 +14,19 @@ const FIELDS = [
   { key: "utilizacion_credito",     label: "Utilización de crédito",     unit: "%",  min: 0,   max: 100,  placeholder: "40",    hint: "Porcentaje del límite de crédito utilizado (0–100)" },
 ];
 
-export default function Prediccion({ trained }) {
-  const [form, setForm]     = useState({});
-  const [result, setResult] = useState(null); // null | 0 | 1
-  const [alert, setAlert]   = useState(null);
+//  Componente principal -----------------------------------------------------------
+export default function Prediccion({
+  trained,
+  form, setForm,
+  result, setResult,
+  errors, setErrors,
+}) {
+  const [alert, setAlert]     = useState(null);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
 
   const validate = () => {
     const errs = {};
-    FIELDS.forEach(({ key, label, min, max }) => {
+    FIELDS.forEach(({ key, min, max }) => {
       const val = form[key];
       if (val === undefined || val === "") { errs[key] = "Campo requerido"; return; }
       const num = parseFloat(val);
@@ -93,7 +96,7 @@ export default function Prediccion({ trained }) {
                 style={{
                   padding: "8px 10px", fontSize: "13px", borderRadius: "6px", fontFamily: "inherit",
                   border: `1px solid ${errors[key] ? "#c0392b" : "var(--border-color)"}`,
-                  background: trained ? "var(--bg-secondary)" : "var(--bg-secondary)",
+                  background: "var(--bg-secondary)",
                   color: "var(--text-primary)", outline: "none",
                   cursor: trained ? "text" : "not-allowed", opacity: trained ? 1 : 0.6,
                 }}

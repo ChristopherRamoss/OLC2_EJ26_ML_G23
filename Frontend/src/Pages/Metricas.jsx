@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine,
 } from "recharts";
-import { getMetrics } from "../api/client";
 import MetricCard from "../components/MetricCard";
-import AlertMessage from "../components/AlertMessage";
 
-// ── Colores por métrica ────────────────────────────────────────
+//  Colores por métrica -----------------------------------------------------------
 const COLORS = {
   Exactitud: "#1D9E75",
   Precisión: "#2980b9",
@@ -15,7 +13,7 @@ const COLORS = {
   "F1 Score":"#8e44ad",
 };
 
-// ── Tooltip gráfica ────────────────────────────────────────────
+//  Tooltip gráfica -----------------------------------------------------------
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
@@ -31,7 +29,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-// ── Leyenda gráfica ────────────────────────────────────────────
+//  Leyenda gráfica -----------------------------------------------------------
 const CustomLegend = () => (
   <div style={{ display: "flex", gap: "16px", justifyContent: "center", marginTop: "8px" }}>
     {Object.entries(COLORS).map(([name, color]) => (
@@ -43,7 +41,7 @@ const CustomLegend = () => (
   </div>
 );
 
-// ── Celda de la matriz ─────────────────────────────────────────
+// Celda de la matriz -----------------------------------------------------------
 const MatrixCell = ({ value, label, sublabel, bg, color, total }) => (
   <div style={{
     background: bg, borderRadius: "8px", padding: "16px 10px",
@@ -64,7 +62,7 @@ const MatrixCell = ({ value, label, sublabel, bg, color, total }) => (
   </div>
 );
 
-// ── Matriz de Confusión ────────────────────────────────────────
+//  Matriz de Confusión -----------------------------------------------------------
 const ConfusionMatrix = ({ matrix }) => {
   const hasData = matrix && matrix.vp !== undefined;
   const vp   = hasData ? matrix.vp : null;
@@ -124,41 +122,9 @@ const ConfusionMatrix = ({ matrix }) => {
   );
 };
 
-// ── Componente principal ───────────────────────────────────────
-export default function Metricas() {
-  const [metrics, setMetrics] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [alert,   setAlert]   = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [view,    setView]    = useState("grafica");
-
-  const fetchMetrics = async () => {
-    setLoading(true);
-    try {
-      const res = await getMetrics();
-      setMetrics(res);
-      setHistory((h) => {
-        const entry = {
-          nombre:    `Entreno ${h.length + 1}`,
-          timestamp: new Date().toLocaleTimeString(),
-          Exactitud: parseFloat((res.accuracy  * 100).toFixed(1)),
-          Precisión: parseFloat((res.precision * 100).toFixed(1)),
-          Recall:    parseFloat((res.recall    * 100).toFixed(1)),
-          "F1 Score":parseFloat((res.f1        * 100).toFixed(1)),
-          accuracy:  res.accuracy,
-          precision: res.precision,
-          recall:    res.recall,
-          f1:        res.f1,
-        };
-        return [...h, entry].slice(-8);
-      });
-    } catch {
-      // Sin modelo entrenado aún — no mostramos error, solo dejamos el estado vacío
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchMetrics(); }, []);
+//  Componente principal -----------------------------------------------------------
+export default function Metricas({ metrics, history }) {
+  const [view, setView] = useState("grafica");
 
   const chartData = history.map((h) => ({
     nombre:    h.nombre,
@@ -174,21 +140,20 @@ export default function Metricas() {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-        <div>
-          <h1 style={{ fontSize: "18px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "4px" }}>
-            Evaluación de rendimiento
-          </h1>
-          <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-            Métricas del modelo entrenado sobre el conjunto de prueba.
-          </p>
-        </div>
-        <button className="btn" onClick={fetchMetrics} disabled={loading}>
-          {loading ? "Actualizando..." : "↻ Actualizar"}
-        </button>
+      <div style={{ marginBottom: "20px" }}>
+        <h1 style={{ fontSize: "18px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "4px" }}>
+          Evaluación de rendimiento
+        </h1>
+        <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+          Métricas del modelo entrenado sobre el conjunto de prueba.
+        </p>
       </div>
 
-      {alert && <AlertMessage {...alert} onClose={() => setAlert(null)} />}
+      {!metrics && (
+        <p style={{ fontSize: "12px", color: "var(--text-muted)", fontStyle: "italic", marginBottom: "16px" }}>
+          Entrena el modelo desde Carga de Datos para ver resultados aquí.
+        </p>
+      )}
 
       {/* 4 tarjetas */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px", marginBottom: "16px" }}>

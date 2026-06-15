@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { uploadCSV, cleanData, trainModel } from "../api/client";
 import AlertMessage from "../components/AlertMessage";
@@ -46,14 +46,19 @@ const COLS = [
 ];
 
 // ── Componente principal ───────────────────────────────────────
-export default function CargaDatos({ onTrained }) {
-  const [status,    setStatus]    = useState({ loaded: false, cleaned: false, trained: false });
-  const [fileName,  setFileName]  = useState(null);
-  const [uploadData, setUploadData] = useState(null);   // respuesta de /upload
-  const [cleanReport, setCleanReport] = useState(null); // respuesta de /clean
-  const [alert,     setAlert]     = useState(null);
-  const [loading,   setLoading]   = useState("");
-  const [dataView,  setDataView]  = useState("distribucion"); // "distribucion" | "muestra"
+// Todo el estado relevante llega por props desde App.jsx para que
+// persista al cambiar de menú (Métricas, Hiperparámetros, etc.)
+export default function CargaDatos({
+  status, setStatus,
+  fileName, setFileName,
+  uploadData, setUploadData,
+  cleanReport, setCleanReport,
+  dataView, setDataView,
+  onTrainSuccess,
+}) {
+  const [alert,   setAlert]   = useState(null);
+  const [loading, setLoading] = useState("");
+  const [trainProgress, setTrainProgress] = useState(0);
   const inputRef = useRef();
 
   const showAlert = (type, msg) => setAlert({ type, msg });
@@ -69,7 +74,7 @@ export default function CargaDatos({ onTrained }) {
       const res = await uploadCSV(file);
       setFileName(file.name);
       setUploadData(res);
-      setStatus((s) => ({ ...s, loaded: true, cleaned: false, trained: false }));
+      setStatus({ loaded: true, cleaned: false, trained: false });
       showAlert("success", `"${file.name}" cargado — ${res.registros.toLocaleString()} registros detectados.`);
     } catch (err) {
       showAlert("error", `Error al cargar: ${err.message}`);
@@ -96,15 +101,29 @@ export default function CargaDatos({ onTrained }) {
   const handleTrain = async () => {
     if (!status.cleaned) { showAlert("error", "Debes limpiar los datos antes de entrenar."); return; }
     setLoading("train");
+    setTrainProgress(5);
+
+    // Avance simulado: el backend procesa todo en una sola petición
+    // y no reporta progreso real, así que animamos hasta 90%
+    // mientras esperamos la respuesta, y saltamos a 100% al terminar.
+    const interval = setInterval(() => {
+      setTrainProgress((p) => (p < 90 ? p + Math.random() * 8 : p));
+    }, 300);
+
     try {
-      await trainModel();
+      const res = await trainModel();
+      clearInterval(interval);
+      setTrainProgress(100);
       setStatus((s) => ({ ...s, trained: true }));
-      onTrained();
+      onTrainSuccess(res); // actualiza métricas + historial en App.jsx
       showAlert("success", "Modelo entrenado exitosamente. Revisa las métricas en el panel correspondiente.");
     } catch (err) {
+      clearInterval(interval);
+      setTrainProgress(0);
       showAlert("error", `Error al entrenar: ${err.message}`);
     }
-    setLoading("");
+
+    setTimeout(() => setLoading(""), 400); // deja ver el 100% un instante
   };
 
   // ── Datos para la dona ────────────────────────────────────
@@ -119,7 +138,7 @@ export default function CargaDatos({ onTrained }) {
     ? uploadData.distribucion.riesgo + uploadData.distribucion.no_riesgo
     : 0;
 
-  const card = (children, extra = {}) => ({
+  const card = (extra = {}) => ({
     background: "var(--bg-card)", border: "1px solid var(--border-color)",
     borderRadius: "10px", padding: "20px", marginBottom: "16px", ...extra,
   });
@@ -183,6 +202,26 @@ export default function CargaDatos({ onTrained }) {
             {loading === "train" ? "Entrenando..." : "▶ Entrenar modelo"}
           </button>
         </div>
+
+        {/* ── Barra de progreso de entrenamiento ── */}
+        {loading === "train" && (
+          <div style={{ marginTop: "14px" }}>
+            <div style={{ height: "8px", borderRadius: "99px", background: "var(--bg-secondary)", overflow: "hidden" }}>
+              <div style={{
+                height: "100%", borderRadius: "99px", background: "#1D9E75",
+                width: `${trainProgress}%`, transition: "width 0.3s ease",
+              }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "6px" }}>
+              <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                ⏳ Entrenando... por favor espere.
+              </span>
+              <span style={{ fontSize: "11px", color: "#1D9E75", fontWeight: 700 }}>
+                {Math.min(100, Math.round(trainProgress))}%
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Visualización de datos post-carga ── */}

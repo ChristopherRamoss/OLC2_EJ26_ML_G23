@@ -18,7 +18,7 @@ export default function Sidebar({ current, onChange, trained }) {
         borderBottom: "1px solid var(--border-color)",
       }}>
         <div style={{ fontSize: "17px", fontWeight: 700, color: "var(--text-primary)", letterSpacing: "0.03em" }}>
-          CreditGuard
+          CreditGuard-G23
         </div>
         <div style={{ fontSize: "10px", color: "var(--text-muted)", letterSpacing: "0.12em", marginTop: "3px", textTransform: "uppercase" }}>
           OLC2 · Predicción crediticia

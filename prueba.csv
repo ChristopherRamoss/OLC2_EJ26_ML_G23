@@ -1,4 +1,4 @@
-ingresos_mensuales,deuda_activa,historial_pagos,antiguedad_laboral,creditos_activos,monto_solicitado,atrasos_previos,dependientes_economicos,utilizacion_credito,riesgo
+ingresos_mensuales,deuda_activa,historial_pagos,antiguedad_laboral,creditos_activos,monto_solicitado,atrasos_previos,dependientes_economicos,utilizacion_credito,en_riesgo
 -5000,25000,120,1,6,40000,5,4,110,1
 ,28000,31,1,5,40000,4,3,91,1
 12000,5000,88,9,1,0,0,2,22,0
