@@ -45,6 +45,7 @@ La arquitectura del sistema fue diseñada bajo un modelo cliente-servidor, separ
 * Flask-CORS
 * Pandas
 * NumPy
+* sklearn 
 
 ## Machine Learning
 
