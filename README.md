@@ -131,9 +131,7 @@ df = df.drop_duplicates()
 
 ### Justificación
 
-Los datos duplicados generan sesgo estadístico dentro del entrenamiento, ya que ciertos patrones quedan sobrerrepresentados.
-
-Por esta razón se decidió eliminarlos.
+Los datos duplicados generan sesgo estadístico dentro del entrenamiento, ya que ciertos patrones quedan sobrerrepresentados. Por esta razón se decidió eliminarlos.
 
 ---
 
@@ -145,7 +143,7 @@ Se cuentan valores faltantes dentro del dataset.
 nulos_total = int(df.isnull().sum().sum())
 ```
 
-Posteriormente se reemplazan utilizando la mediana.
+Luego se reemplazan utilizando la mediana.
 
 ```python
 df[col] = df[col].fillna(df[col].median())
@@ -153,7 +151,7 @@ df[col] = df[col].fillna(df[col].median())
 
 ### Justificación
 
-Se eligió imputar usando mediana porque:
+Se eligió reemplazar usando la mediana porque:
 
 * Conserva el tamaño del dataset.
 * Evita eliminar registros útiles.
@@ -169,15 +167,13 @@ Se detectan valores negativos en ingresos mensuales.
 negativos = (df["ingresos_mensuales"] < 0).sum()
 ```
 
-Posteriormente se corrigen.
+Luego se corrigen.
 
 ```python
 df["ingresos_mensuales"] = df["ingresos_mensuales"].clip(lower=0)
 ```
 
 ### Justificación
-
-En el contexto financiero un ingreso negativo representa un valor inválido.
 
 Se decidió corregir a cero en lugar de eliminar registros para no perder información adicional contenida en otras variables.
 
@@ -201,7 +197,7 @@ df["utilizacion_credito"] = df["utilizacion_credito"].clip(0,100)
 
 ### Justificación
 
-Se decidió ajustar automáticamente valores fuera de rango en lugar de eliminar registros para conservar la mayor cantidad de información posible.
+Se decidió ajustar automáticamente valores fuera de rango en lugar de eliminar los  registros para conservar la mayor cantidad de información posible.
 
 ---
 
@@ -232,9 +228,7 @@ Random Forest fue elegido por las siguientes ventajas:
 
 # Implementación del Modelo
 
-El modelo fue desarrollado manualmente en `model.py`.
-
-No se utilizó implementación automática de Random Forest.
+El modelo fue desarrollado manualmente en `model.py`. No se utilizó implementación automática de Random Forest.
 
 ---
 
@@ -387,7 +381,7 @@ Balance entre precision y recall.
 
 # Decisiones de Diseño Tomadas
 
-Durante el desarrollo se tomaron las siguientes decisiones técnicas.
+Durante el desarrollo se tomaron las siguientes decisiones técnicas:
 
 ### Arquitectura cliente-servidor
 
@@ -400,18 +394,6 @@ Separación entre:
 * API (`app.py`)
 * Limpieza (`cleaner.py`)
 * Modelo (`model.py`)
-
-### Estado temporal en memoria
-
-No se implementó base de datos debido a que el sistema trabaja únicamente con archivos cargados temporalmente.
-
-### Modelo implementado manualmente
-
-Se desarrolló desde cero para cumplir el requerimiento académico del proyecto.
-
-### Conservación de datos
-
-Se priorizó corregir datos inválidos antes que eliminar registros para mantener suficiente volumen de entrenamiento.
 
 ---
 
@@ -449,10 +431,4 @@ http://localhost:5173
 
 ---
 
-# Conclusiones Técnicas
 
-Se desarrolló un sistema completo de clasificación supervisada capaz de analizar información financiera, limpiar datos inconsistentes, entrenar un modelo Random Forest implementado manualmente y generar predicciones sobre nuevos solicitantes.
-
-La arquitectura modular permitió separar responsabilidades entre procesamiento, limpieza, entrenamiento y visualización.
-
-La implementación manual del modelo permitió comprender internamente el funcionamiento de árboles de decisión, bootstrap sampling, selección aleatoria de variables y votación por mayoría.
