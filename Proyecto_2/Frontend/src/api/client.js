@@ -1,6 +1,6 @@
 // ── Configuración ──────────────────────────────────────────────
 const BASE = "http://localhost:5000";
-const MOCK_MODE = true; // cambiar a false cuando el backend esté listo
+const MOCK_MODE = false; // cambiar a false cuando el backend esté listo
 
 const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
