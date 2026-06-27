@@ -201,7 +201,7 @@ export default function Clasificacion({
           border: `1px solid ${segColor(result.segmento_idx).border}`,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
-            <span style={{ fontSize: "28px" }}>🎯</span>
+            <span style={{ fontSize: "28px" }}></span>
             <div>
               <div style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "4px" }}>
                 Segmento asignado
