@@ -88,6 +88,9 @@ export default function Exportacion({
         .map(([k]) => k);
 
       const res = await exportar({ elementos });
+      for (const archivo of res.archivos) {
+        await descargarArchivo(archivo);
+      }
       setGenerados(res.archivos);
       setAlert({ type: "success", msg: `Exportación completada — ${res.archivos.length} archivo(s) generado(s).` });
     } catch (err) {
