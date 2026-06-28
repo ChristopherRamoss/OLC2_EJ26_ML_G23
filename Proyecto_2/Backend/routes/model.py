@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 import routes.upload as upload
-from services.model_service import entrenar_modelo
+from services.model_service import entrenar_modelo, clasificar_freelancer, clasificar_resena
 
 train_bp = Blueprint("train", __name__)
 

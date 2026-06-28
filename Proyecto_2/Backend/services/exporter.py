@@ -1,3 +1,16 @@
+"""
+exporter.py — Exportación de reportes
+======================================
+TalentMosaic · OLC2 · USAC · Junio 2026
+
+Genera los 5 tipos de exportación que pide el enunciado:
+  1. freelancers_segmentado.csv
+  2. resenas_segmentado.csv
+  3. resumen_estadistico.csv
+  4. metricas_evaluacion.csv
+  5. reporte_visual.pdf
+"""
+
 import io
 import numpy as np
 import pandas as pd
@@ -9,15 +22,20 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak,
 )
 
-def exportar_freelancers_segmentado(df_fl: pd.DataFrame, labels_fl) -> bytes:
 
+# ══════════════════════════════════════════════════════════════
+# CSVs
+# ══════════════════════════════════════════════════════════════
+
+def exportar_freelancers_segmentado(df_fl: pd.DataFrame, labels_fl) -> bytes:
+    """CSV de freelancers con columna 'segmento' añadida."""
     df = df_fl.copy()
     df["segmento"] = [int(l) if l >= 0 else -1 for l in labels_fl]
     return df.to_csv(index=False).encode("utf-8")
 
 
 def exportar_resenas_segmentado(df_rv: pd.DataFrame, labels_rv) -> bytes:
-
+    """CSV de reseñas con columna 'segmento' añadida."""
     df = df_rv.copy()
     df["segmento"] = [int(l) if l >= 0 else -1 for l in labels_rv]
     return df.to_csv(index=False).encode("utf-8")
@@ -25,7 +43,9 @@ def exportar_resenas_segmentado(df_rv: pd.DataFrame, labels_rv) -> bytes:
 
 def exportar_resumen_estadistico(df_fl: pd.DataFrame, labels_fl,
                                   segmentos_fl: list) -> bytes:
-
+    """
+    CSV con el resumen estadístico (promedio y moda) por segmento de freelancers.
+    """
     filas = []
     for seg in segmentos_fl:
         fila = {"segmento": f"Segmento {seg['id'] + 1}", "n_registros": seg["n"]}
@@ -36,7 +56,9 @@ def exportar_resumen_estadistico(df_fl: pd.DataFrame, labels_fl,
 
 
 def exportar_metricas(resultado_fl=None, resultado_rv=None) -> bytes:
-
+    """
+    CSV con las 3 métricas de validación para cada modelo entrenado.
+    """
     filas = []
     if resultado_fl:
         m = resultado_fl.get("metricas", {})
@@ -62,10 +84,12 @@ def exportar_metricas(resultado_fl=None, resultado_rv=None) -> bytes:
     return df_m.to_csv(index=False).encode("utf-8")
 
 
+# ══════════════════════════════════════════════════════════════
+# PDF
+# ══════════════════════════════════════════════════════════════
 
-# para el PDF
 def _color_seg(i):
-
+    """Colores de segmento para el PDF (igual que el frontend)."""
     PALETA = [
         colors.HexColor("#58a6ff"),
         colors.HexColor("#3fb950"),
@@ -77,7 +101,13 @@ def _color_seg(i):
 
 
 def exportar_pdf(resultado_fl=None, resultado_rv=None) -> bytes:
-
+    """
+    Genera el reporte visual en PDF:
+    - Portada con título
+    - Sección Freelancers (si existe): tabla de segmentos + descripciones
+    - Sección Reseñas (si existe): tabla de segmentos + términos frecuentes + descripciones
+    - Métricas de validación
+    """
     buffer = io.BytesIO()
     doc    = SimpleDocTemplate(
         buffer, pagesize=A4,
@@ -98,7 +128,7 @@ def exportar_pdf(resultado_fl=None, resultado_rv=None) -> bytes:
 
     story = []
 
-    # Portada 
+    # ── Portada ────────────────────────────────────────────────
     story.append(Spacer(1, 3*cm))
     story.append(Paragraph("TalentMosaic", h1))
     story.append(Paragraph("Reporte de Segmentación", h2))
@@ -106,7 +136,7 @@ def exportar_pdf(resultado_fl=None, resultado_rv=None) -> bytes:
     story.append(Spacer(1, 1*cm))
 
     def tabla_segmentos(segmentos, columnas):
-
+        """Construye una tabla ReportLab con el resumen por segmento."""
         cabecera = ["Segmento", "Registros"] + [c.replace("_", " ").title() for c in columnas]
         filas    = [cabecera]
         for seg in segmentos:
@@ -136,7 +166,7 @@ def exportar_pdf(resultado_fl=None, resultado_rv=None) -> bytes:
         t.setStyle(TableStyle(estilo))
         return t
 
-    # Sección Freelancers 
+    # ── Sección Freelancers ────────────────────────────────────
     if resultado_fl:
         story.append(PageBreak())
         story.append(Paragraph("Segmentación de Freelancers", h2))
@@ -160,7 +190,7 @@ def exportar_pdf(resultado_fl=None, resultado_rv=None) -> bytes:
                 bd
             ))
 
-    # Sección Reseñas 
+    # ── Sección Reseñas ────────────────────────────────────────
     if resultado_rv:
         story.append(PageBreak())
         story.append(Paragraph("Segmentación de Reseñas", h2))
@@ -194,7 +224,7 @@ def exportar_pdf(resultado_fl=None, resultado_rv=None) -> bytes:
                 bd
             ))
 
-    # Métricas 
+    # ── Métricas ───────────────────────────────────────────────
     story.append(PageBreak())
     story.append(Paragraph("Métricas de Validación", h2))
 

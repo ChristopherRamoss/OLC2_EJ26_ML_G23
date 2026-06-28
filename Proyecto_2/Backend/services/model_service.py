@@ -329,7 +329,7 @@ def _centros_clusters(X, labels):
 def clasificar_freelancer(datos: dict, modelo, scaler, algoritmo: str,
                           X_entrenamiento, labels_entrenamiento):
 
-    from cleaner import NUMERICAS_FL
+    from services.cleaner import NUMERICAS_FL
     vector = np.array([[float(datos.get(c, 0)) for c in FEATURES_FL]])
     vector_scaled = scaler.transform(vector)
 
