@@ -1,21 +1,21 @@
 
-# Creacion de la estructura base del frontend desde la carpeta raiz
 
-# Frontend
+# Manual Técnico: Proyecto TalentMosaic
+
+TalentMosaic es una plataforma avanzada de análisis y segmentación de datos diseñada para la gestión de freelancers y reseñas. Este manual detalla los componentes técnicos y la lógica operativa del sistema.
+
+
+## Frontend
 npm create vite@latest Proyecto2/Frontend -- --template react
 npm install
 npm install rechartsp
 npm run dev
 
-# Bakend
+## Bakend
 
 cd Backend
 pip install -r requirements.txt
 python app.py
-
-# Manual Técnico: Proyecto TalentMosaic
-
-TalentMosaic es una plataforma avanzada de análisis y segmentación de datos diseñada para la gestión de freelancers y reseñas. Este manual detalla los componentes técnicos y la lógica operativa del sistema.
 
 ## 1. Arquitectura del Sistema
 
