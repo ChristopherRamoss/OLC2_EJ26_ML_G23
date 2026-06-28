@@ -116,15 +116,15 @@ def exportar_pdf(resultado_fl=None, resultado_rv=None) -> bytes:
     )
     styles  = getSampleStyleSheet()
     NEGRO   = colors.HexColor("#0d1117")
-    GRIS    = colors.HexColor("#8b949e")
+    GRIS    = colors.HexColor("#394048")
     BLANCO  = colors.HexColor("#e6edf3")
     AMBER   = colors.HexColor("#E8A838")
     BG_CARD = colors.HexColor("#161b22")
 
-    h1 = ParagraphStyle("h1", parent=styles["Heading1"], textColor=BLANCO,   fontSize=20, spaceAfter=6)
+    h1 = ParagraphStyle("h1", parent=styles["Heading1"], textColor=GRIS,   fontSize=20, spaceAfter=6)
     h2 = ParagraphStyle("h2", parent=styles["Heading2"], textColor=AMBER,    fontSize=14, spaceAfter=4)
-    h3 = ParagraphStyle("h3", parent=styles["Heading3"], textColor=BLANCO,   fontSize=11, spaceAfter=3)
-    bd = ParagraphStyle("bd", parent=styles["Normal"],   textColor=GRIS,     fontSize=9,  spaceAfter=6, leading=14)
+    h3 = ParagraphStyle("h3", parent=styles["Heading3"], textColor=GRIS,   fontSize=11, spaceAfter=3)
+    bd = ParagraphStyle("bd", parent=styles["Normal"],   textColor=NEGRO,     fontSize=9,  spaceAfter=6, leading=14)
 
     story = []
 
@@ -182,7 +182,7 @@ def exportar_pdf(resultado_fl=None, resultado_rv=None) -> bytes:
         story.append(tabla_segmentos(resultado_fl["segmentos"], resultado_fl["columnas_resumen"]))
         story.append(Spacer(1, 0.5*cm))
 
-        story.append(Paragraph("Descripción de Segmentos", h3))
+        story.append(Paragraph("Descripción de Segmentos",  ))
         for seg in resultado_fl["segmentos"]:
             c = _color_seg(seg["id"])
             story.append(Paragraph(
