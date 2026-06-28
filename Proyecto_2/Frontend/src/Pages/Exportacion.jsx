@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { exportar } from "../api/client";
+import { exportar, descargarArchivo } from "../api/client";
 import AlertMessage from "../components/AlertMessage";
 
 const ELEMENTOS = [

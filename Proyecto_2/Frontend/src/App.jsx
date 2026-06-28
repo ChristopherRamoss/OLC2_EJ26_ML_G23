@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import Carga from "./pages/Carga";
 import Entrenamiento from "./pages/Entrenamiento";
 import Interpretacion from "./pages/Interpretacion";
 import Evaluacion from "./pages/Evaluacion";
 import Clasificacion from "./pages/Clasificacion";
-import Exportacion from "./pages/Exportacion";
+import Exportacion from "./Pages/Exportacion";
+import { checkEstado } from "./api/client";
 import "./App.css";
 
 export default function App() {
@@ -16,13 +17,13 @@ export default function App() {
   // Vista 1 — Carga
   const [freelancersFile, setFreelancersFile] = useState(null);
   const [resenasFile,     setResenasFile]     = useState(null);
-  const [freelancersData, setFreelancersData] = useState(null); // preview + stats
+  const [freelancersData, setFreelancersData] = useState(null);
   const [resenasData,     setResenasData]     = useState(null);
   const [cleanReport,     setCleanReport]     = useState(null);
   const [cleaned,         setCleaned]         = useState(false);
 
   // Vista 2 — Entrenamiento
-  const [modeloFreelancers, setModeloFreelancers] = useState(null); // resultado entrenamiento
+  const [modeloFreelancers, setModeloFreelancers] = useState(null);
   const [modeloResenas,     setModeloResenas]     = useState(null);
 
   // Vista 3 — Interpretación
@@ -34,6 +35,39 @@ export default function App() {
   // Vista 5 — Clasificación
   const [clasifType,   setClasifType]   = useState("freelancer");
   const [clasifResult, setClasifResult] = useState(null);
+
+  // ── Detectar modelos guardados en disco al arrancar ───────────
+  // Si el backend cargó modelos desde persistence.py al iniciar,
+  // el frontend los detecta y desbloquea las vistas sin necesidad
+  // de pasar por Carga → Limpieza → Entrenamiento de nuevo.
+  useEffect(() => {
+    checkEstado()
+      .then((res) => {
+        const { freelancers, resenas } = res.modelos_en_memoria ?? {};
+
+        if (freelancers || resenas) {
+          setCleaned(true);
+
+          // Construir el objeto mínimo que necesita el frontend
+          // con los metadatos que devuelve el backend desde /
+          if (freelancers && res.meta_fl) {
+            setModeloFreelancers({
+              ...res.meta_fl,
+              _persistido: true,
+            });
+          }
+          if (resenas && res.meta_rv) {
+            setModeloResenas({
+              ...res.meta_rv,
+              _persistido: true,
+            });
+          }
+        }
+      })
+      .catch(() => {
+        // Backend no disponible — el usuario pasará por el flujo normal
+      });
+  }, []);
 
   const trainedFreelancers = !!modeloFreelancers;
   const trainedResenas     = !!modeloResenas;
@@ -77,8 +111,8 @@ export default function App() {
         trainedResenas={trainedResenas}
         modeloFreelancers={modeloFreelancers}
         modeloResenas={modeloResenas}
-        type={clasifType}       setType={setClasifType}
-        result={clasifResult}   setResult={setClasifResult}
+        type={clasifType}     setType={setClasifType}
+        result={clasifResult} setResult={setClasifResult}
       />
     ),
     exportacion: (

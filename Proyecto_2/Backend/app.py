@@ -1,16 +1,19 @@
 """
+app.py — Servidor Flask
+========================
+TalentMosaic · OLC2 · USAC · Junio 2026
 
-Estos son los endpoints que vamos a usar que pide el front 
-POST /upload/freelancers  → carga CSV de freelancers
-POST /upload/resenas      → carga CSV de reseñas
-POST /clean               → limpia ambos datasets
-POST /train               → entrena modelo de clustering
-POST /classify            → clasifica nuevo registro
-POST /export              → genera lista de archivos exportables
-GET  /export/download/<nombre> → descarga un archivo exportado
+Endpoints:
+  POST /upload/freelancers  → carga CSV de freelancers
+  POST /upload/resenas      → carga CSV de reseñas
+  POST /clean               → limpia ambos datasets
+  POST /train               → entrena modelo de clustering
+  POST /classify            → clasifica nuevo registro
+  POST /export              → genera lista de archivos exportables
+  GET  /export/download/<nombre> → descarga un archivo exportado
 
-el get aun tiene clavos
-
+Ejecutar:
+  python app.py  →  http://localhost:5000
 """
 
 import io
@@ -19,8 +22,8 @@ import pandas as pd
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 
-from services.cleaner   import limpiar_freelancers, limpiar_resenas, combinar_stats
-from services.model_service    import entrenar_modelo, clasificar_freelancer, clasificar_resena
+from services.cleaner     import limpiar_freelancers, limpiar_resenas, combinar_stats
+from services.model_service     import entrenar_modelo, clasificar_freelancer, clasificar_resena
 from services.exporter    import (
     exportar_freelancers_segmentado, exportar_resenas_segmentado,
     exportar_resumen_estadistico, exportar_metricas, exportar_pdf,
@@ -52,9 +55,9 @@ def err(msg, code=400):
     return jsonify({"message": msg}), code
 
 
- 
+# ══════════════════════════════════════════════════════════════
 # POST /upload/freelancers
- 
+# ══════════════════════════════════════════════════════════════
 @app.route("/upload/freelancers", methods=["POST"])
 def upload_freelancers():
     if "file" not in request.files:
@@ -80,9 +83,9 @@ def upload_freelancers():
         return err(f"Error al leer el CSV: {str(e)}")
 
 
- 
+# ══════════════════════════════════════════════════════════════
 # POST /upload/resenas
- 
+# ══════════════════════════════════════════════════════════════
 @app.route("/upload/resenas", methods=["POST"])
 def upload_resenas():
     if "file" not in request.files:
@@ -108,9 +111,9 @@ def upload_resenas():
         return err(f"Error al leer el CSV: {str(e)}")
 
 
- 
+# ══════════════════════════════════════════════════════════════
 # POST /clean
- 
+# ══════════════════════════════════════════════════════════════
 @app.route("/clean", methods=["POST"])
 def clean():
     if estado["df_fl_raw"] is None:
@@ -133,9 +136,9 @@ def clean():
         return err(f"Error en limpieza: {str(e)}", 500)
 
 
- 
+# ══════════════════════════════════════════════════════════════
 # POST /train
- 
+# ══════════════════════════════════════════════════════════════
 @app.route("/train", methods=["POST"])
 def train():
     if estado["df_fl"] is None or estado["df_rv"] is None:
@@ -187,9 +190,9 @@ def train():
         return err(f"Error al entrenar: {str(e)}", 500)
 
 
- 
+# ══════════════════════════════════════════════════════════════
 # POST /classify
- 
+# ══════════════════════════════════════════════════════════════
 @app.route("/classify", methods=["POST"])
 def classify():
     body = request.get_json()
@@ -253,9 +256,9 @@ def classify():
     return err("type debe ser 'freelancer' o 'resena'.")
 
 
- 
+# ══════════════════════════════════════════════════════════════
 # POST /export
- 
+# ══════════════════════════════════════════════════════════════
 @app.route("/export", methods=["POST"])
 def export():
     body = request.get_json()
@@ -305,9 +308,9 @@ def export():
     })
 
 
- 
+# ══════════════════════════════════════════════════════════════
 # GET /export/download/<nombre>
- 
+# ══════════════════════════════════════════════════════════════
 @app.route("/export/download/<nombre>", methods=["GET"])
 def download(nombre):
     exp = estado.get("_exportacion")
@@ -348,16 +351,29 @@ def download(nombre):
         return err(f"Error al generar {nombre}: {str(e)}", 500)
 
 
- 
+# ══════════════════════════════════════════════════════════════
 @app.route("/")
 def home():
+    res_fl = estado["resultado_fl"]
+    res_rv = estado["resultado_rv"]
+
+    def meta(res):
+        """Extrae solo los metadatos serializables (sin artefactos binarios)."""
+        if res is None:
+            return None
+        return {k: v for k, v in res.items() if not k.startswith("_")}
+
     return jsonify({
         "message": "TalentMosaic Backend funcionando",
         "version": "1.0.0",
         "modelos_en_memoria": {
-            "freelancers": estado["resultado_fl"] is not None,
-            "resenas":     estado["resultado_rv"] is not None,
-        }
+            "freelancers": res_fl is not None,
+            "resenas":     res_rv is not None,
+        },
+        # Metadatos completos para que el frontend reconstruya
+        # el estado sin necesidad de reentrenar
+        "meta_fl": meta(res_fl),
+        "meta_rv": meta(res_rv),
     })
 
 
