@@ -1,5 +1,3 @@
-
-
 import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering
@@ -9,7 +7,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 from sklearn.metrics.pairwise import euclidean_distances
 
-# ── Features para clustering de freelancers ────────────────────
+# Features para clustering de freelancers 
 FEATURES_FL = [
     "proyectos_completados", "ingresos_totales", "tarifa_hora_promedio",
     "anios_experiencia",     "tiempo_respuesta_horas", "tasa_finalizacion",
@@ -156,7 +154,7 @@ def calcular_elbow(X, k_range=range(2, 11), algoritmo="kmeans"):
             km = KMeans(n_clusters=k, init="k-means++", n_init=5,
                         max_iter=100, random_state=42)
             km.fit(X_arr)
-            datos.append({"k": k, "value": round(float(km.inertia_), 2)})
+            datos.append({"k": int(k), "value": round(float(km.inertia_), 2)})
         else:
             if algoritmo == "jerarquico":
                 m = AgglomerativeClustering(n_clusters=k)
@@ -165,7 +163,7 @@ def calcular_elbow(X, k_range=range(2, 11), algoritmo="kmeans"):
             lbl = m.fit_predict(X_arr)
             if len(set(lbl)) >= 2:
                 sil = silhouette_score(X_arr, lbl)
-                datos.append({"k": k, "value": round(float(sil), 4)})
+                datos.append({"k": int(k), "value": round(float(sil), 4)})
     return datos
 
 
@@ -265,8 +263,8 @@ def construir_segmentos(df_original, labels, X_scaled, dataset,
             descripcion = _descripcion_freelancer(seg_df, i)
 
         segmentos.append({
-            "id":           i,
-            "n":            n,
+            "id":           int(i),
+            "n":            int(n),
             "pca_points":   pca_points,
             "resumen":      resumen,
             "descripcion":  descripcion,
@@ -312,8 +310,8 @@ def construir_tabla_cruzada(df_fl, labels_fl, df_rv, labels_rv):
         datos.append(fila)
 
     return {
-        "segFreelancers": [{"id": i} for i in segs_fl],
-        "segResenas":     [{"id": i} for i in segs_rv],
+        "segFreelancers": [{"id": int(i)} for i in segs_fl],
+        "segResenas":     [{"id": int(i)} for i in segs_rv],
         "datos":          datos,
     }
 
@@ -423,6 +421,8 @@ def entrenar_modelo(df, dataset: str, algoritmo: str, params: dict,
         tabla_cruzada = construir_tabla_cruzada(df, labels, df_rv, labels_rv)
     elif dataset == "resenas" and df_fl is not None and labels_fl is not None:
         tabla_cruzada = construir_tabla_cruzada(df_fl, labels_fl, df, labels)
+
+
 
     return {
         "ok":               True,
