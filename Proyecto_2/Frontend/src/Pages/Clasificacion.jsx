@@ -4,17 +4,17 @@ import AlertMessage from "../components/AlertMessage";
 import { SegBadge, segColor } from "../components/SegmentColors";
 
 const CAMPOS_FREELANCER = [
-  { key: "proyectos_completados",  label: "Proyectos completados",       type: "number", placeholder: "42",    hint: "Total de proyectos finalizados" },
-  { key: "ingresos_totales",       label: "Ingresos totales (USD)",      type: "number", placeholder: "73500", hint: "Ingresos acumulados desde el registro" },
-  { key: "tarifa_hora_promedio",   label: "Tarifa por hora (USD)",       type: "number", placeholder: "107",   hint: "Promedio cobrado por hora" },
-  { key: "anios_experiencia",      label: "Años de experiencia",         type: "number", placeholder: "5",     hint: "Años declarados por el freelancer" },
-  { key: "tiempo_respuesta_horas", label: "Tiempo de respuesta (horas)", type: "number", placeholder: "4.9",   hint: "Promedio de respuesta a clientes" },
-  { key: "tasa_finalizacion",      label: "Tasa de finalización (%)",    type: "number", placeholder: "90",    hint: "% de proyectos completados (0–100)" },
-  { key: "calificacion_promedio",  label: "Calificación promedio (0–5)", type: "number", placeholder: "4.5",   hint: "Promedio de calificaciones recibidas" },
+  { key: "proyectos_completados",  label: "Proyectos completados",       type: "number", placeholder: "42",    hint: "Total de proyectos finalizados",        min: 0},
+  { key: "ingresos_totales",       label: "Ingresos totales (USD)",      type: "number", placeholder: "73500", hint: "Ingresos acumulados desde el registro", min: 0},
+  { key: "tarifa_hora_promedio",   label: "Tarifa por hora (USD)",       type: "number", placeholder: "107",   hint: "Promedio cobrado por hora",             min: 0},
+  { key: "anios_experiencia",      label: "Años de experiencia",         type: "number", placeholder: "5",     hint: "Años declarados por el freelancer",     min: 0},
+  { key: "tiempo_respuesta_horas", label: "Tiempo de respuesta (horas)", type: "number", placeholder: "4.9",   hint: "Promedio de respuesta a clientes",      min: 0},
+  { key: "tasa_finalizacion",      label: "Tasa de finalización (%)",    type: "number", placeholder: "90",    hint: "% de proyectos completados (0–100)",    min: 0, max: 100 },
+  { key: "calificacion_promedio",  label: "Calificación promedio (0–5)", type: "number", placeholder: "4.5",   hint: "Promedio de calificaciones recibidas",  min: 0, max: 5 },
   { key: "categoria_principal",    label: "Categoría principal",         type: "select",
     options: ["Desarrollo de Software","Diseño Gráfico","Marketing Digital","Redacción y Traducción","Soporte Administrativo Virtual"] },
-  { key: "clientes_recurrentes",   label: "Clientes recurrentes",        type: "number", placeholder: "8",     hint: "Clientes que contrataron más de una vez" },
-  { key: "horas_trabajadas_mes",   label: "Horas trabajadas al mes",     type: "number", placeholder: "69",    hint: "Promedio de horas mensuales" },
+  { key: "clientes_recurrentes",   label: "Clientes recurrentes",        type: "number", placeholder: "8",     hint: "Clientes que contrataron más de una vez", min: 0 },
+  { key: "horas_trabajadas_mes",   label: "Horas trabajadas al mes",     type: "number", placeholder: "69",    hint: "Promedio de horas mensuales",             min: 0},
 ];
 
 function Campo({ campo, value, onChange }) {
@@ -63,8 +63,30 @@ export default function Clasificacion({
   const validate = () => {
     const errs = {};
     if (type === "freelancer") {
-      CAMPOS_FREELANCER.forEach(({ key, label }) => {
-        if (!form[key] && form[key] !== 0) errs[key] = "Campo requerido";
+      CAMPOS_FREELANCER.forEach(({ key, label, type: t, min, max }) => {
+        const val = form[key];
+
+        // Campo requerido
+        if (val === undefined || val === "" || val === null) {
+          errs[key] = "Campo requerido";
+          return;
+        }
+
+        // Solo validar rangos en campos numéricos
+        if (t === "number") {
+          const num = parseFloat(val);
+          if (isNaN(num)) {
+            errs[key] = "Debe ser un número válido";
+            return;
+          }
+          if (min !== undefined && num < min) {
+            errs[key] = `El valor mínimo es ${min}`;
+            return;
+          }
+          if (max !== undefined && num > max) {
+            errs[key] = `El valor máximo es ${max}`;
+          }
+        }
       });
     } else {
       if (!resena.trim()) errs.resena = "Ingresa el texto de la reseña.";
