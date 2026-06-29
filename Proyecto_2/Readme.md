@@ -29,6 +29,8 @@ npm create vite@latest Proyecto2/Frontend -- --template react
 - cd Backend
 - python -m venv .venv
 - .venv\Scripts\activate
+- pip install scikit-learn
+- pip install reportlab
 - pip install -r requirements.txt
 - python app.py
 
